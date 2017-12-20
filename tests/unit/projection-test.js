@@ -897,13 +897,23 @@ module('unit/projection', function(hooks) {
 
       assert.deepEqual(
         baseRecordWatcher.counts,
-        { author: 0, 'author.name': 0, 'author.location': 1 },
+        {
+          author: 0,
+          'author.name': 0,
+          'author.location': 1,
+          'author.age': baseRecordWatcher.counts['author.age'],
+        },
         'Final baseRecord state'
       );
 
       assert.deepEqual(
         excerptWatcher.counts,
-        { author: 0, 'author.name': 0, 'author.location': 1 },
+        {
+          author: 0,
+          'author.name': 0,
+          'author.location': 1,
+          'author.age': excerptWatcher.counts['author.age'],
+        },
         'Final excerpt state'
       );
 
@@ -989,7 +999,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Updating an embedded object property on the base-record updates the value for projections', function(assert) {
+    test('Updating an embedded object property on the base-record updates the value for projections', function(assert) {
       let { store } = this;
       let { baseRecord, projectedExcerpt } = this.records;
 
@@ -1095,7 +1105,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Updating an embedded object property on a projection updates the base-record and other projections', function(assert) {
+    test('Updating an embedded object property on a projection updates the base-record and other projections', function(assert) {
       let { store } = this;
       let { baseRecord, projectedExcerpt } = this.records;
 
@@ -1132,7 +1142,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Updating an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
+    test('Updating an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
       let { store } = this;
       let { baseRecord, projectedExcerpt } = this.records;
 

@@ -92,7 +92,7 @@ module('unit/model-data', function(hooks) {
     assert.deepEqual(attrsIterated, ['localAttr', 'inFlightAttr', 'dataAttr']);
   });
 
-  test(`.constructor populates the parent modelData's .childModelDatas`, function(assert) {
+  test(`.getChildModelData returns new model data`, function(assert) {
     let topModelData = new M3ModelData(
       'com.exmaple.bookstore.book',
       '1',
@@ -109,22 +109,17 @@ module('unit/model-data', function(hooks) {
       `initially child modelDatas aren't populated`
     );
 
-    let child1ModelData = new M3ModelData(
-      'com.exmaple.bookstore.book',
-      '1',
+    let child1ModelData = topModelData._getChildModelData(
+      'child1',
       null,
-      this.storeWrapper,
-      topModelData,
-      'child1'
+      'com.example.bookstore.book',
+      '1'
     );
-
-    let child2ModelData = new M3ModelData(
-      'com.exmaple.bookstore.book',
-      '1',
+    let child2ModelData = topModelData._getChildModelData(
+      'child2',
       null,
-      this.storeWrapper,
-      topModelData,
-      'child2'
+      'com.example.bookstore.book',
+      '1'
     );
 
     assert.equal(child1ModelData._parentModelData, topModelData, 'child1 -> parent');
@@ -250,6 +245,28 @@ module('unit/model-data', function(hooks) {
       baseModelData._projections,
       [baseModelData, projectedModelData],
       'Expected projected model data to be in the projections list'
+    );
+  });
+
+  test('nested projection model register in the base model nested model data', function(assert) {
+    let projectionModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
+    let baseModelData = this.storeWrapper.modelDataFor('com.bookstore.book', '1');
+
+    let nestedProjected = projectionModelData._getChildModelData(
+      'preface',
+      undefined,
+      'com.bookstore.chapter'
+    );
+
+    assert.ok(
+      baseModelData._childModelDatas['preface'],
+      'Expected base model data to have created a nested model data'
+    );
+
+    let nestedBase = baseModelData._getChildModelData('preface', undefined);
+    assert.ok(
+      nestedBase._projections.find(x => x === nestedProjected),
+      'Expected the nested projection model data to be registered in the nested base model data'
     );
   });
 
@@ -413,42 +430,37 @@ module('unit/model-data', function(hooks) {
       this.child1Model = {
         _notifyProperties: this.sinon.spy(),
       };
-      this.child1ModelData = new M3ModelData(
-        'com.exmaple.bookstore.book',
+      this.child1ModelData = this.topModelData._getChildModelData(
         'child1',
         null,
-        this.storeWrapper,
-        this.topModelData,
+        'com.exmaple.bookstore.book',
         'child1',
-        false,
-        { record: this.child1Model }
+        {
+          record: this.child1Model,
+        }
       );
 
       this.child2Model = {
         _notifyProperties: this.sinon.spy(),
       };
-      this.child2ModelData = new M3ModelData(
-        'com.exmaple.bookstore.book',
+      this.child2ModelData = this.topModelData._getChildModelData(
         'child2',
         null,
-        this.storeWrapper,
-        this.topModelData,
+        'com.exmaple.bookstore.book',
         'child2',
-        false,
-        { record: this.child2Model }
+        {
+          record: this.child2Model,
+        }
       );
 
       this.child11Model = {
         _notifyProperties: this.sinon.spy(),
       };
-      this.child11ModelData = new M3ModelData(
-        'com.exmaple.bookstore.book',
+      this.child11ModelData = this.child1ModelData._getChildModelData(
         'child1_1',
         null,
-        this.storeWrapper,
-        this.child1ModelData,
+        'com.exmaple.bookstore.book',
         'child1_1',
-        false,
         { record: this.child11Model }
       );
     });

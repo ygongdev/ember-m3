@@ -10,7 +10,6 @@ import { warn } from '@ember/debug';
 import { alias } from '@ember/object/computed';
 import Map from '@ember/map';
 
-import M3ModelData from './model-data';
 import SchemaManager from './schema-manager';
 import M3RecordArray from './record-array';
 import { OWNER_KEY } from './util';
@@ -48,18 +47,15 @@ class EmbeddedSnapshot {
 
 // TODO: shouldn't need this anymore; this level of indirection for nested modeldata isn't useful
 class EmbeddedInternalModel {
-  constructor({ id, modelName, attributes, parentInternalModel, parentKey, valueInArray }) {
+  constructor({ id, modelName, attributes, parentInternalModel, parentKey, parentIdx }) {
     this.id = id;
     this.modelName = modelName;
 
-    this._modelData = new M3ModelData(
+    this._modelData = parentInternalModel._modelData._getChildModelData(
+      parentKey,
+      parentIdx,
       modelName,
       id,
-      null,
-      parentInternalModel._modelData.storeWrapper,
-      parentInternalModel._modelData,
-      parentKey,
-      valueInArray,
       this
     );
     this._modelData.pushData({
@@ -113,7 +109,7 @@ function resolveReferenceOrReferences(store, value, reference) {
  * 3. Single nested model -> EmbeddedMegaMorphicModel
  * 4. Array of nested models -> array of EmbeddedMegaMorphicModel
  */
-function resolveValue(key, value, modelName, store, schema, model, valueInArray = false) {
+function resolveValue(key, value, modelName, store, schema, model, parentIdx) {
   const schemaInterface = model._internalModel._modelData.schemaInterface;
 
   // First check to see if given value is either a reference or an array of references
@@ -136,7 +132,7 @@ function resolveValue(key, value, modelName, store, schema, model, valueInArray 
       attributes: nested.attributes,
       parentInternalModel: model._internalModel,
       parentKey: key,
-      valueInArray,
+      parentIdx,
     });
     let nestedModel = new EmbeddedMegamorphicModel({
       store,
@@ -158,7 +154,7 @@ function resolvePlainArray(key, value, modelName, store, schema, model) {
     return new Array(0);
   }
 
-  return value.map(value => resolveValue(key, value, modelName, store, schema, model, true));
+  return value.map((value, idx) => resolveValue(key, value, modelName, store, schema, model, idx));
 }
 
 function resolveRecordArray(store, references) {

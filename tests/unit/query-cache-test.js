@@ -821,4 +821,30 @@ module('unit/query-cache', function(hooks) {
     let promise2 = this.queryCache.queryURL('/uwot', options);
     assert.equal(promise1, promise2);
   });
+
+  test('.queryURL uses queryURL adapter hook if available', function(assert) {
+    let params = { param: 'paramValue' };
+
+    this.adapter.queryURL = this.sinon.stub().returns(
+      resolve({
+        data: {
+          id: '1',
+          type: 'something-or-other',
+          attributes: {},
+        },
+      })
+    );
+
+    // add cacheKey to confirm only select options are passed down
+    let options = { cacheKey: 'cached-value', params };
+
+    return this.queryCache.queryURL('/test-url', options).then(() => {
+      assert.deepEqual(
+        stubCalls(this.adapter.queryURL),
+        [[this.adapter + '', ['/test-url', 'GET', { params }]]],
+        'Expected the queryURL hook to have been called'
+      );
+      assert.notOk(this.adapterAjax.calledOnce, 'Expected `ajax` function to not have been called');
+    });
+  });
 });

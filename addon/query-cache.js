@@ -17,6 +17,7 @@ export default class QueryCache {
     this._queryCache = new Object(null);
     this._reverseQueryCache = new Object(null);
     this.__adapter = null;
+    this.__serializer = null;
   }
 
   queryURL(
@@ -32,7 +33,7 @@ export default class QueryCache {
   ) {
     let options = {};
     if (params) {
-      options.data = params;
+      options.params = params;
     }
 
     let cachedPromise = cacheKey ? this._queryCache[cacheKey] : undefined;
@@ -40,14 +41,14 @@ export default class QueryCache {
     let loadPromise;
 
     if (backgroundReload || reload || cachedPromise === undefined) {
-      loadPromise = this._adapter.ajax(adapterUrl, method, options).then(rawPayload => {
+      loadPromise = this._adapterQueryURL(adapterUrl, method, options).then(rawPayload => {
         let serializer = this._store.serializerFor('-ember-m3');
         let payload = serializer.normalizeResponse(
           this._store,
           MegamorphicModel,
           rawPayload,
           cacheKey,
-          'query-url'
+          'queryURL'
         );
         let result = this._createResult(payload, { url, params, method, cacheKey }, array);
         //Add result to reverseCache.
@@ -92,7 +93,20 @@ export default class QueryCache {
     return !!this._queryCache[cacheKey];
   }
 
+  _adapterQueryURL(url, method, options) {
+    let adapter = this._adapter;
+    if (adapter.queryURL) {
+      return adapter.queryURL(url, method, options);
+    }
+    let ajaxOptions = {};
+    if (options.params) {
+      ajaxOptions.data = options.params;
+    }
+    return adapter.ajax(url, method, ajaxOptions);
+  }
+
   _buildUrl(url) {
+    // TODO Should adapter append its own namespace? Move the whole logic there?
     let parts = [];
 
     let needsHost = false;
@@ -204,6 +218,10 @@ export default class QueryCache {
 
   get _adapter() {
     return this.__adapter || (this.__adapter = this._store.adapterFor('-ember-m3'));
+  }
+
+  get _serializer() {
+    return this.__serializer || (this.__serializer = this._store.serializerFor('-ember-m3'));
   }
 
   toString() {

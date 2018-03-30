@@ -485,7 +485,7 @@ export default class M3ModelData {
     this._baseModelData._registerProjection(this);
   }
 
-  _getChildModelData(key, idx, modelName, id, embeddedModel) {
+  _getChildModelData(key, idx, modelName, id, embeddedInternalModel) {
     let childModelData;
     if (idx !== undefined && idx !== null) {
       let childModelDatas = this._childModelDatas[key];
@@ -501,14 +501,14 @@ export default class M3ModelData {
       if (!childModelData) {
         childModelData = this._childModelDatas[key] = this._createChildModelData(
           key,
-          idx,
+          null,
           modelName,
           id
         );
       }
     }
     if (!childModelData._embeddedInternalModel) {
-      childModelData._embeddedInternalModel = embeddedModel;
+      childModelData._embeddedInternalModel = embeddedInternalModel;
     }
     return childModelData;
   }
@@ -542,10 +542,9 @@ export default class M3ModelData {
     }
     if (this._projections) {
       // TODO Add a test for this destruction
-      for (let i = 0; i < this._projections.length; i++) {
-        if (this._projections[i] !== this) {
-          this._projections[i]._destroyChildModelData(key);
-        }
+      // start from 1 as we know the first projection is the model data
+      for (let i = 1; i < this._projections.length; i++) {
+        this._projections[i]._destroyChildModelData(key);
       }
     }
   }

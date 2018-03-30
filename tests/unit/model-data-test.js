@@ -92,7 +92,7 @@ module('unit/model-data', function(hooks) {
     assert.deepEqual(attrsIterated, ['localAttr', 'inFlightAttr', 'dataAttr']);
   });
 
-  test(`.getChildModelData returns new model data`, function(assert) {
+  test(`._getChildModelData returns new model data`, function(assert) {
     let topModelData = new M3ModelData(
       'com.exmaple.bookstore.book',
       '1',
@@ -165,15 +165,15 @@ module('unit/model-data', function(hooks) {
   test('.rollbackAttributes does not call notifyPropertyChange with undefined without hasChangedAttributes', function(assert) {
     assert.expect(1);
     const rollbackAttributesSpy = this.sinon.spy();
+    this.storeWrapper.notifyPropertyChange = rollbackAttributesSpy;
+
     let modelData = new M3ModelData(
       'com.exmaple.bookstore.book',
       '1',
       null,
       this.storeWrapper,
       null,
-      null,
-      null,
-      { record: { _notifyProperties: rollbackAttributesSpy } }
+      null
     );
     modelData.rollbackAttributes(true);
     assert.equal(rollbackAttributesSpy.getCalls().length, 0, 'rollbackAttributes was not called');
@@ -267,6 +267,46 @@ module('unit/model-data', function(hooks) {
     assert.ok(
       nestedBase._projections.find(x => x === nestedProjected),
       'Expected the nested projection model data to be registered in the nested base model data'
+    );
+  });
+
+  test('setting a nested model to null destroys child model datas in all projections', function(assert) {
+    let projectionModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
+    let baseModelData = this.storeWrapper.modelDataFor('com.bookstore.book', '1');
+
+    projectionModelData.pushData({
+      id: '1',
+      attributes: {
+        name: 'Harry Potter and the Chamber of Secrets',
+        prequelBook: {
+          name: `Harry Potter and the Sorcerer's Stone`,
+        },
+      },
+    });
+
+    // initialize the child model data
+    projectionModelData._getChildModelData('prequelBook', null, 'com.bookstore.book', '1', null);
+
+    assert.ok(
+      baseModelData._childModelDatas['prequelBook'],
+      'Expected base child model data to have been created as well'
+    );
+
+    // reset to null
+    baseModelData.pushData({
+      id: '1',
+      attributes: {
+        prequelBook: null,
+      },
+    });
+
+    assert.notOk(
+      baseModelData._childModelDatas['prequelBook'],
+      'Expected base child model data to have been destroyed'
+    );
+    assert.notOk(
+      projectionModelData._childModelDatas['prequelBook'],
+      'Expected projected child model data to have been destroyed'
     );
   });
 

@@ -972,7 +972,7 @@ module('unit/projection', function(hooks) {
       this.records = null;
     });
 
-    skip('Setting an embedded object property on the base-record updates the value for projections', function(assert) {
+    test('Setting an embedded object property on the base-record updates the value for projections', function(assert) {
       let { baseRecord, projectedExcerpt } = this.records;
 
       run(() => {
@@ -1037,16 +1037,17 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Setting an embedded object property on a projection updates the base-record and other projections', function(assert) {
+    test('Setting an embedded object property on a projection updates the base-record and other projections', function(assert) {
       let { baseRecord, projectedExcerpt } = this.records;
       let { baseRecordWatcher, excerptWatcher } = this.watchers;
-      let baseCounts = baseRecordWatcher.counts;
-      let excerptCounts = excerptWatcher.counts;
 
       run(() => {
         set(projectedExcerpt, 'author.location', NEW_AUTHOR_LOCATION);
         set(projectedExcerpt, 'author.age', NEW_AUTHOR_AGE);
       });
+
+      let baseCounts = baseRecordWatcher.counts;
+      let excerptCounts = excerptWatcher.counts;
 
       assert.equal(baseCounts['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
       assert.equal(excerptCounts['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
@@ -1062,7 +1063,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Setting an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
+    test('Setting an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
       let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
 
       run(() => {

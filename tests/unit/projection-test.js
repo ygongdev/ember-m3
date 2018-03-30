@@ -417,6 +417,81 @@ module('unit/projection', function(hooks) {
     });
   });
 
+  test('Updating an embedded object property to null can still be updated again', function(assert) {
+    const BOOK_ID = 'isbn:9780439708181';
+    const AUTHOR_NAME = 'Lewis Carroll';
+    const NEW_AUTHOR_NAME = 'J.K. Rowling';
+
+    let { store } = this;
+
+    let baseRecord;
+    let projectedExcerpt;
+
+    run(() => {
+      baseRecord = store.push({
+        data: {
+          id: BOOK_ID,
+          type: BOOK_CLASS_PATH,
+          attributes: {
+            author: {
+              name: AUTHOR_NAME,
+            },
+          },
+        },
+      });
+
+      projectedExcerpt = store.push({
+        data: {
+          id: BOOK_ID,
+          type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+          attributes: {},
+        },
+      });
+    });
+
+    // force nested model to be created
+    projectedExcerpt.get('author');
+
+    // reset author to null
+    run(() => {
+      store.push({
+        data: {
+          id: BOOK_ID,
+          type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+          attributes: {
+            author: null,
+          },
+        },
+      });
+    });
+
+    // update author again
+    run(() => {
+      store.push({
+        data: {
+          id: BOOK_ID,
+          type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+          attributes: {
+            author: {
+              name: NEW_AUTHOR_NAME,
+            },
+          },
+        },
+      });
+    });
+
+    assert.equal(
+      get(baseRecord, 'author.name'),
+      NEW_AUTHOR_NAME,
+      'base-record has the correct author.name'
+    );
+    assert.equal(
+      get(projectedExcerpt, 'author.name'),
+      NEW_AUTHOR_NAME,
+      'excerpt has the correct author.name'
+    );
+  });
+
   module('property notifications on top-level attributes', function(hooks) {
     /*
       All of the tests in this module MUST implement the following:

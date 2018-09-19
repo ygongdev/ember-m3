@@ -5492,9 +5492,9 @@ pretender@^2.1.0:
     fake-xml-http-request "^2.0.0"
     route-recognizer "^0.3.3"
 
-prettier@^1.9.1:
-  version "1.14.0"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-1.14.0.tgz#847c235522035fd988100f1f43cf20a7d24f9372"
+prettier@^1.14.3:
+  version "1.14.3"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-1.14.3.tgz#90238dd4c0684b7edce5f83b0fb7328e48bd0895"
 
 pretty-format@^23.2.0:
   version "23.2.0"

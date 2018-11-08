@@ -211,6 +211,7 @@ export default class M3RecordData {
     if (this._baseRecordData) {
       return this._baseRecordData.willCommit();
     }
+    // debugger
     this._inFlightAttributes = this._attributes;
     this._attributes = null;
 
@@ -267,6 +268,29 @@ export default class M3RecordData {
     }
     // In case, the server doesn't provide updates for changes in nested models.
     this._syncNestedModelUpdates(attributes);
+
+    this._syncNestedModelUpdates(attributes);
+    // // Iterate through the children and if the childKey doesn't exist in the payload,
+    // // We need to call didCommit on it to ensure the childRecordData has the correct state.
+    // if (this.__childRecordDatas) {
+    //   let nestedKeys = Object.keys(this._childRecordDatas);
+    //   for (let i = 0; i < nestedKeys.length; ++i) {
+    //     let childKey = nestedKeys[i];
+    //     let childRecordData = this._childRecordDatas[childKey];
+    //     // If the childKey already exists in the server response, we don't need to didCommit
+    //     // _mergeUpdates will handle it.
+    //     if (attributes && childKey in attributes) {
+    //       continue;
+    //     }
+
+    //     if (!Array.isArray(childRecordData)) {
+    //       // TODO: pass value to didCommit jsonApiResource.attribute[childKey]? Don't think we need to do this anymore.
+    //       childRecordData.didCommit();
+    //     } else {
+    //       childRecordData.forEach(child => child.didCommit());
+    //     }
+    //   }
+    // }
 
     emberAssign(this._data, this._inFlightAttributes);
     this._inFlightAttributes = null;

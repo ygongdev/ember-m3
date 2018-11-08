@@ -734,7 +734,8 @@ module('unit/model/changed-attrs', function(hooks) {
 
       set(nestedModels.get('firstObject'), 'name', 'sooooooo super windy');
 
-      return savePromise.then(() => {
+      return savePromise.then(resolvedModel => {
+        debugger;
         assert.deepEqual(
           get(model, 'chapters').map(m => get(m, 'name')),
           ['The Boy Who Lived', 'The Vanishing Glass'],
@@ -783,8 +784,28 @@ module('unit/model/changed-attrs', function(hooks) {
     set(nestedModels.get('firstObject'), 'name', 'super windy');
     return run(() =>
       model.save().then(data => {
+        debugger;
+        assert.deepEqual(data._internalModel._recordData._data, {
+          name: 'The Winds of Winter',
+          author: 'George R. R. Martin',
+          rating: 10,
+          expectedPubDate: 'never',
+          chapters: [
+            {
+              name: 'super windy',
+              number: 1,
+            },
+            {
+              name: `I guess winter was coming after all`,
+              number: 2,
+            },
+          ],
+        });
         assert.deepEqual(data.changedAttributes(), {}, 'changedAttributes is empty');
       })
     );
   });
 });
+
+// partial models
+// array and non-array
